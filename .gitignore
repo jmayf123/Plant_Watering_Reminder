@@ -1,3 +1,4 @@
 /data
 arduino_code/.gitignore
 node_backend/node_modules
+*.env
