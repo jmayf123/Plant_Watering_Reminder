@@ -1,2 +1,3 @@
 /data
 arduino_code/.gitignore
+node-backend/node_modules
