@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sensor Data</title>
+</head>
+<body>
+    <h1>Sensor Data</h1>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>Sensor Value</th>
+        </tr>
+        {% for entry in data %}
+        <tr>
+            <td>{{ entry.timestamp }}</td>
+            <td>{{ entry.data }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -64,7 +64,7 @@ void loop() {
   sendATCommand(connectCmd.c_str(), "CONNECT");
 
   // Prepare the HTTP POST request
-  String httpRequest = "POST /your_endpoint/ HTTP/1.1\r\n";
+  String httpRequest = "POST /recieve-data/ HTTP/1.1\r\n";
   httpRequest += "Host: " + String(host) + "\r\n";
   httpRequest += "Content-Type: application/x-www-form-urlencoded\r\n";
   String postData = "sensorData=" + String(sensor_val);
