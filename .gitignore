@@ -1,4 +1,24 @@
 /data
 arduino_code/.gitignore
-node_backend/node_modules
-*.env
+
+# Python
+*.pyc
+__pycache__/
+.venv/
+
+# Django
+db.sqlite3
+media/
+static/
+local_settings.py
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDE-specific
+.idea/
+.vscode/
+
+# Sensitive information
+.env
