@@ -1,7 +1,6 @@
 from django.urls import path
-
-from . import views
+from .views import show_data  # Import the correct view
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path('show/', show_data, name='show_data'),  # Update the path to the new view
 ]
