@@ -2,9 +2,15 @@
 Capacitive Soil Moisture Sensor WiFI Read In
 Jackson Mayfield - 09/06/2024
 */
-
+//////////////////////////////////////////////////////////////////////////////////////
+////////// Setup 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
+
+// Function prototypes
+void connectToWiFi();
+void sendDataOverWiFi(int data);
+bool sendATCommand(const char* cmd, const char* expectedResponse, unsigned long timeout);
 
 // Define SoftwareSerial pins for communication with ESP8266
 SoftwareSerial esp8266(2, 3);  // RX, TX
@@ -16,42 +22,27 @@ const int sensorPin = A0;
 const int dry = 463; // Constant for dry sensor
 const int wet = 195; // Constant for wet sensor
 
-//Server ID vars
-const char* ssid = "your_SSID";
-const char* password = "your_PASSWORD";
-const char* host = "your_server_ip_or_hostname";  // IP or domain of Django server
-const int httpPort = 8000;  // Port for Django server
+// Network ID vars
+const char* ssid = "saltlakecity";
+const char* password = "Paellalover22";
+const char* host = "192.168.1.149";  // IP or domain of Django server
+const int port = 80;  // Port for Django server
 
-// Helper function to send AT commands to ESP8266
-void sendATCommand(const char* cmd, const char* success_response, int wait_time = 2000) {
-    esp8266.println(cmd);
-    long int time = millis();
-    while ((millis() - time) < wait_time) {
-        while (esp8266.available()) {
-            String response = esp8266.readString();
-            Serial.println(response);
-            if (response.indexOf(success_response) != -1) {
-                return;
-            }
-        }
-    }
-}
+
+//////////////////////////////////////////////////////////////////////////////////////
+////////// Main Code
 
 void setup() {
     // Start the serial communication for debugging and ESP8266 communication
-    Serial.begin(115200);   // For Arduino serial monitor
+    Serial.begin(9600);   // For Arduino serial monitor
     esp8266.begin(115200);  // For ESP8266 (adjust baud rate if necessary)
 
-    // Initialize ESP8266 and connect to Wi-Fi
-    Serial.println("Initializing ESP8266...");
-
-    sendATCommand("AT", "OK");  // Check communication with ESP8266
-    sendATCommand("AT+CWMODE=1", "OK");  // Set Wi-Fi mode to client
-    String connectWiFi = String("AT+CWJAP=\"") + ssid + "\",\"" + password + "\"";
-    sendATCommand(connectWiFi.c_str(), "WIFI CONNECTED", 10000);  // Connect to Wi-Fi
+  // Initialize ESP8266
+  sendATCommand("AT", "OK", 1000);            // Check if ESP is ready
+  sendATCommand("AT+CWMODE=1", "OK", 1000);   // Set mode to station
+  connectToWiFi();                            // Connect to WiFi
 }
 
-// the loop routine runs over and over again forever:
 void loop() {
   // Read Sensor Data
   int sensor_val = analogRead(sensorPin);
@@ -59,36 +50,56 @@ void loop() {
   String moisture_str = String(per_moisture); // Convert the integer to a String and concatenate with other text
   Serial.println("Moisture level: " + moisture_str + "%");
   
-  // Connect to the server
-  String connectCmd = String("AT+CIPSTART=\"TCP\",\"") + host + "\"," + httpPort;
-  sendATCommand(connectCmd.c_str(), "CONNECT");
+  // Send Data to the Server
+  sendDataOverWiFi(sensor_val);
+  delay(3000);  // Delay before next reading
+}
 
-  // Prepare the HTTP POST request
-  String httpRequest = "POST /recieve-data/ HTTP/1.1\r\n";
+//////////////////////////////////////////////////////////////////////////////////////
+////////// Helper Functions
+
+void connectToWiFi() {
+  String cmd = "AT+CWJAP=\"" + String(ssid) + "\",\"" + String(password) + "\"";
+  sendATCommand(cmd.c_str(), "OK", 5000);    // Connect to WiFi network
+}
+
+void sendDataOverWiFi(int sensorValue) {
+  String httpRequest = "GET /update?data=" + String(sensorValue) + " HTTP/1.1\r\n";
   httpRequest += "Host: " + String(host) + "\r\n";
-  httpRequest += "Content-Type: application/x-www-form-urlencoded\r\n";
-  String postData = "sensorData=" + String(sensor_val);
-  httpRequest += "Content-Length: " + String(postData.length()) + "\r\n\r\n";
-  httpRequest += postData;
+  httpRequest += "Connection: close\r\n\r\n";
 
-  // Send the HTTP request length
-  String sendCmd = "AT+CIPSEND=" + String(httpRequest.length());
-  sendATCommand(sendCmd.c_str(), ">");
+  // Start the connection
+  String cmd = "AT+CIPSTART=\"TCP\",\"" + String(host) + "\"," + String(port);
+  if (sendATCommand(cmd.c_str(), "OK", 2000)) {
+    delay(1000);
 
-  // Send the actual HTTP request
-  esp8266.print(httpRequest);
-  delay(1000);  // Give the ESP8266 some time to process
-
-  // Read the response from the server
-  while (esp8266.available()) {
-      String response = esp8266.readString();
-      Serial.println("Server Response: ");
-      Serial.println(response);
+    // Send data length
+    cmd = "AT+CIPSEND=" + String(httpRequest.length());
+    if (sendATCommand(cmd.c_str(), ">", 2000)) {
+      esp8266.print(httpRequest);  // Send the actual HTTP request
+      delay(1000);
+      esp8266.println("AT+CIPCLOSE");  // Close the connection
+    }
   }
+}
 
-  // Close the connection
-  sendATCommand("AT+CIPCLOSE", "CLOSED");
+// Function to send AT commands and wait for a response
+bool sendATCommand(const char* cmd, const char* expectedResponse, unsigned long timeout) {
+  esp8266.println(cmd);
+  unsigned long startTime = millis();
+  String response = "";
+  
+  while (millis() - startTime < timeout) {
+    while (esp8266.available()) {
+      char c = esp8266.read();    // Read character by character
+      response += c;
 
-  // Wait 10 seconds before sending data again
-  delay(10000);
+      // Check if the expected response is found in the current response string
+      if (response.indexOf(expectedResponse) != -1) {
+        return true;  // Found the expected response
+      }
+    }
+  }
+  Serial.println("Failed: " + String(cmd));  // Failed to find the expected response
+  return false;
 }
