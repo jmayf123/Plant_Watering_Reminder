@@ -6,6 +6,7 @@ Jackson Mayfield - 09/06/2024
 ////////// Setup 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
+#include "secrets.h"
 
 // Define SoftwareSerial pins for communication with ESP8266
 SoftwareSerial esp8266(2, 3);  // RX, TX
@@ -18,10 +19,10 @@ const int dry = 463; // Constant for dry sensor
 const int wet = 195; // Constant for wet sensor
 
 // Network ID vars
-const char* ssid = "saltlakecity";
-const char* password = "Paellalover22";
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
 const char* host = "0.0.0.0";  // IP or domain of Django server
-String port = "8000";  // Port for Django server
+String port = "8001";  // Port for Django server
 
 //////////////////////////////////////////////////////////////////////////////////////
 ////////// Helper Functions

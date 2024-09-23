@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv("/home/jmayf123/Documents/Projects/Plant_Watering_Reminder/data/.env")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-aqujupw^k2hdz%=w5s!w8(rb9w$dj^r8%=+cqafcq58az@q)%@"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -79,7 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'db_1',  # Replace with your PostgreSQL database name
         'USER': 'postgres',      # Replace with your PostgreSQL username
-        'PASSWORD': '@Jma1234',  # Replace with your PostgreSQL password
+        'PASSWORD': os.getenv('db_pass'),  # Replace with your PostgreSQL password
         'HOST': 'localhost',         # Use 'localhost' if the database is on your local machine
         'PORT': '5432',              # Default PostgreSQL port is 5432
     }

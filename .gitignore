@@ -1,5 +1,10 @@
 /data
 arduino_code/.gitignore
+arduino_code/.pio
+arduino_code/.vscode/.browse.c_cpp.db*
+arduino_code/.vscode/c_cpp_properties.json
+arduino_code/.vscode/launch.json
+arduino_code/.vscode/ipch
 
 # Python
 *.pyc
@@ -9,7 +14,6 @@ __pycache__/
 # Django
 db.sqlite3
 media/
-static/
 local_settings.py
 
 # OS-specific
@@ -22,3 +26,4 @@ Thumbs.db
 
 # Sensitive information
 .env
+secrets.h
