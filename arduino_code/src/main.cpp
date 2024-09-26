@@ -21,8 +21,8 @@ const int wet = 195; // Constant for wet sensor
 // Network ID vars
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
-const char* host = "0.0.0.0";  // IP or domain of Django server
-String port = "8001";  // Port for Django server
+const char* host = "0.0.0.0";  // IP or domain of Django server -- must be on this to connect to network devices
+String port = "8000";  // Port for Django server
 
 //////////////////////////////////////////////////////////////////////////////////////
 ////////// Helper Functions
@@ -30,13 +30,13 @@ void connectToWiFi() {
   // Send AT command to reset ESP8266
   esp8266.println("AT+RST");
   delay(2000);
-  esp8266.println("AT+CWMODE_CUR=1");  // Set ESP8266 to client mode
+  esp8266.println("AT+CWMODE_CUR=3");  // Set ESP8266 to softAP+station mode 
   delay(2000);
 
   // Connect to WiFi
   String cmd = "AT+CWJAP_CUR=\"" + String(ssid) + "\",\"" + String(password) + "\"";
   esp8266.println(cmd);
-  delay(5000);
+  delay(2000);
 
   // Check if connection is successful
   if (esp8266.find("OK")) {
@@ -46,11 +46,15 @@ void connectToWiFi() {
   }
 }
 
-void sendDataOverWiFi(int sensorValue) {
+void sendDataOverWiFi(String sensorValue) {
   String cmd = "AT+CIPSTART=\"TCP\",\"" + String(host) + "\"," + String(port);
   esp8266.println(cmd);
   delay(2000);
   
+  String cmd_2 = "AT+CIPSTART=1";
+  esp8266.println(cmd_2);
+  delay(2000);
+
   if (esp8266.find("OK")) {
     String httpPacket = "GET /update?moisture=" + String(sensorValue) + " HTTP/1.1\r\nHost: " + String(host) + "\r\nConnection: close\r\n\r\n";
 
@@ -94,7 +98,7 @@ void loop() {
   Serial.println("Moisture level: " + moisture_str + "%");
   
   // Send Data to the Server
-  sendDataOverWiFi(sensor_val);
+  sendDataOverWiFi(moisture_str);
   delay(3000);  // Delay before next reading
 }
 
