@@ -13,6 +13,21 @@
         <h1>Plant Watering Monitoring System</h1>
     </header>
 
+    <script>
+        // Function to periodically refresh the moisture data
+        function fetchMoistureData() {
+            fetch('get-moisture/')  // Fetch from the new endpoint
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('moisture-value').innerText = data.Val;  // Update displayed value
+                })
+                .catch(error => console.error('Error fetching moisture data:', error)); // Handle errors
+        }
+
+        // Call the fetch function every 10 seconds
+        setInterval(fetchMoistureData, 10000);
+    </script>
+
     <div class="dashboard">
         <section class="moisture-reading">
             <h2>Current Soil Moisture Level</h2>

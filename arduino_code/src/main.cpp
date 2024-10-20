@@ -63,46 +63,65 @@ void setup() {
 
   Serial.println("Connected to WiFi");
 
-  // Serial.println("Testing connection to server...");
-  // if (client.connect(server, port)) {
-  //   Serial.println("Connected to server");
-  //   client.print("Host: ");
-  //   client.println(server);
-  //   client.println("Connection: close");
-  //   client.println();
-  //   client.flush();
-  // }
 }
 
 void loop() {
-  // Read Sensor Data
-  int sensor_val = analogRead(sensorPin);
-  int per_moisture = map(sensor_val, wet, dry, 100, 0); // Translates the analog read to a percentage between 0 - 100% moisture content
-  String moisture_str = String(per_moisture); // Convert the integer to a String and concatenate with other text
-  Serial.println("Moisture level: " + moisture_str + "%");
-  
-  // Prepare the POST data
-  String postData = "sensor_value=" + moisture_str;
+    // Read Sensor Data
+    int sensor_val = analogRead(sensorPin);
+    int per_moisture = map(sensor_val, wet, dry, 100, 0);
+    String moisture_str = String(per_moisture);
+    Serial.println("Moisture level: " + moisture_str + "%");
 
-  // Send data to the Django server
-  if (client.connect(server, port)) {
-    Serial.println("Connected to server");
+    // Prepare the POST data
+    String postData = "sensor_value=" + moisture_str;
 
-    // Start POST request
-    client.println("POST /sensor/ HTTP/1.1");  // Replace /sensor with the correct endpoint URL on your Django server
-    client.println("Host: " + String(server));
-    client.println("Content-Type: application/x-www-form-urlencoded");  // Form data encoding
-    client.println("Connection: close");
-    client.print("Content-Length: ");
-    client.println(postData.length());  // Send the length of the POST data
-    client.println();  // End of headers
-    client.println(postData);  // Send the POST data (sensor value) 
-    client.stop();  // Close the connection
-  } else {
-    Serial.println("Failed to connect to server");
-  }
+    // Check WiFi connection status
+    int wifiStatus = WiFi.status();
 
-  // Wait for 10 seconds before sending the next data
-  delay(10000);
+    if (wifiStatus != WL_CONNECTED) {
+        Serial.print("WiFi Status: ");
+        Serial.println(wifiStatus);  // Print the current WiFi status
+        Serial.println("Trying to connect to WiFi...");
+        
+        // Attempt to reconnect
+        WiFi.begin(ssid, password);
+        
+        // Wait for a while to check if connected
+        unsigned long startAttemptTime = millis();
+        while (wifiStatus != WL_CONNECTED && millis() - startAttemptTime < 10000) { // Timeout after 10 seconds
+            delay(500);
+            Serial.print(".");
+            wifiStatus = WiFi.status();  // Update status
+        }
+
+        if (wifiStatus == WL_CONNECTED) {
+            Serial.println("Connected to WiFi");
+        } else {
+            Serial.println("Failed to connect to WiFi. Retrying...");
+        }
+    }
+
+    // Send data to the Django server only if connected to WiFi
+    if (client.connect(server, port)) {
+        Serial.println("Connected to server");
+        
+        // Start POST request
+        client.println("POST /sensor/ HTTP/1.1");
+        client.println("Host: " + String(server));
+        client.println("Content-Type: application/x-www-form-urlencoded");
+        client.println("Connection: close");
+        client.print("Content-Length: ");
+        client.println(postData.length());
+        client.println();
+        client.println(postData);
+        client.stop(); // Close the connection
+    } else {
+        Serial.println("Failed to connect to server, retrying...");
+    }
+
+    // Wait for 10 seconds before sending the next data
+    delay(2000);
 }
+
+
 

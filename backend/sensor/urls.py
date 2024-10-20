@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views  # Import the correct view
+from .views import index, get_moisture_data
 
 urlpatterns = [
-    path('', views.index, name='index')
+    path('', index, name='index'),  # Main page
+    path('get-moisture/', get_moisture_data, name='get_moisture'),  # New endpoint for GET requests
 ]
