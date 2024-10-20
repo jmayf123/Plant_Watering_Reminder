@@ -1,7 +1,16 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-# ESP8266_IP = 'http://192.168.4.1'
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt 
 
 def index(request):
-    # request.get() #Read the ESP8266
-    return render(request, 'index.html', {'Val':'82%'})
+    if request.method == "POST":
+        # Parse incoming data from the Arduino
+        data = request.POST.get('sensor_value', 'No data')
+        print(f"Received sensor data: {data}")
+        return render(request, 'index.html', {'Val': data+'%'})
+    else:
+        return render(request, 'index.html', {'Val':'NA'})
+
+
